@@ -1,0 +1,399 @@
+// Prisma schema for GearTrade / ReviveAuto Used Car & Bike Parts Marketplace
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  phone         String?
+  passwordHash  String
+  role          String    @default("CUSTOMER") // SUPER_ADMIN, ADMIN, INVENTORY_MANAGER, ORDER_MANAGER, SUPPORT_MANAGER, CONTENT_MANAGER, CUSTOMER
+  status        String    @default("ACTIVE")   // ACTIVE, SUSPENDED
+  avatar        String?
+  addresses     Address[]
+  orders        Order[]
+  offers        Offer[]
+  offerMessages OfferMessage[]
+  reviews       Review[]
+  wishlist      Wishlist[]
+  supportTickets SupportTicket[]
+  ticketMessages TicketMessage[]
+  notifications Notification[]
+  questions     ProductQuestion[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Address {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  phone       String
+  addressLine String
+  city        String
+  state       String
+  pincode     String
+  type        String   @default("HOME") // HOME, OFFICE, OTHER
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model VehicleBrand {
+  id          String         @id @default(cuid())
+  name        String         @unique
+  vehicleType String         @default("CAR") // CAR, BIKE
+  logo        String?
+  popular     Boolean        @default(false)
+  models      VehicleModel[]
+  products    Product[]
+  createdAt   DateTime       @default(now())
+}
+
+model VehicleModel {
+  id          String       @id @default(cuid())
+  brandId     String
+  brand       VehicleBrand @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  name        String
+  vehicleType String       @default("CAR") // CAR, BIKE
+  years       String       // e.g. "2015-2024" or comma-separated years
+  fuelTypes   String       // e.g. "Petrol, Diesel, CNG" or "Petrol"
+  variants    String?      // e.g. "SX, EX, S, E, Turbo"
+  products    Product[]
+  createdAt   DateTime     @default(now())
+}
+
+model Category {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  parentId    String?
+  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryHierarchy")
+  vehicleType String     @default("BOTH") // CAR, BIKE, BOTH
+  icon        String?
+  status      String     @default("ACTIVE")
+  sortOrder   Int        @default(0)
+  products    Product[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Product {
+  id                 String         @id @default(cuid())
+  sku                String         @unique
+  name               String
+  slug               String         @unique
+  description        String
+  categoryId         String
+  category           Category       @relation(fields: [categoryId], references: [id])
+  vehicleType        String         // CAR, BIKE
+  brandId            String
+  brand              VehicleBrand   @relation(fields: [brandId], references: [id])
+  modelId            String
+  model              VehicleModel   @relation(fields: [modelId], references: [id])
+  variant            String?
+  year               Int
+  fuelType           String?
+  partNumber         String?
+  oemNumber          String?
+  condition          String         @default("GENUINE_USED") // GENUINE_USED, REFURBISHED, RECONDITIONED, OPEN_BOX, OEM_USED, AFTERMARKET_USED, DAMAGED_PARTS
+  conditionRating    String         @default("EXCELLENT")    // EXCELLENT, GOOD, FAIR, FOR_PARTS
+  conditionNotes     String?
+  cosmeticCondition  String?
+  functionalCondition String?
+  mileage            String?
+  inspectionStatus   String         @default("INSPECTED_TESTED") // INSPECTED_TESTED, TESTED, NOT_TESTED, REFURBISHED
+  damageDisclosure   String?
+  hasDamage          Boolean        @default(false)
+  price              Float
+  comparePrice       Float?
+  minimumOfferPrice  Float?         // Lowest price admin would consider in bargain
+  stock              Int            @default(1)
+  isSold             Boolean        @default(false)
+  isReserved         Boolean        @default(false)
+  isFeatured         Boolean        @default(false)
+  status             String         @default("PUBLISHED") // PUBLISHED, DRAFT, SOLD, ARCHIVED
+  warranty           String?        // e.g. "30 Days Testing Warranty"
+  returnEligibility  String?        // e.g. "7 Days Replacement for Compatibility Mismatch"
+  location           String?        // e.g. "Pune Hub Rack-B14"
+  weight             Float?
+  dimensions         String?
+  images             ProductImage[]
+  offers             Offer[]
+  cartItems          CartItem[]
+  orderItems         OrderItem[]
+  reviews            Review[]
+  wishlist           Wishlist[]
+  questions          ProductQuestion[]
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+}
+
+model ProductImage {
+  id            String   @id @default(cuid())
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  imageUrl      String
+  caption       String?
+  isDamagePhoto Boolean  @default(false)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+}
+
+model Offer {
+  id             String         @id @default(cuid())
+  offerNumber    String         @unique
+  productId      String
+  product        Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  customerId     String
+  customer       User           @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  originalPrice  Float
+  currentOffer   Float
+  customerNote   String?
+  status         String         @default("PENDING") // PENDING, COUNTER_OFFER, ACCEPTED, REJECTED, EXPIRED, CANCELLED
+  roundsCount    Int            @default(1)
+  maxRounds      Int            @default(4)
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  checkoutToken  String?        @unique
+  isCheckedOut   Boolean        @default(false)
+  messages       OfferMessage[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model OfferMessage {
+  id          String   @id @default(cuid())
+  offerId     String
+  offer       Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  senderId    String
+  sender      User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  senderRole  String   // CUSTOMER, ADMIN
+  message     String
+  offerAmount Float?
+  createdAt   DateTime @default(now())
+}
+
+model Cart {
+  id         String     @id @default(cuid())
+  userId     String?    @unique
+  sessionId  String?    @unique
+  items      CartItem[]
+  updatedAt  DateTime   @updatedAt
+  createdAt  DateTime   @default(now())
+}
+
+model CartItem {
+  id             String   @id @default(cuid())
+  cartId         String
+  cart           Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId      String
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity       Int      @default(1)
+  unitPrice      Float
+  appliedOfferId String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  orderNumber     String      @unique
+  customerId      String?
+  customer        User?       @relation(fields: [customerId], references: [id])
+  customerName    String
+  customerEmail   String
+  customerPhone   String
+  subtotal        Float
+  discount        Float       @default(0)
+  couponCode      String?
+  shipping        Float       @default(0)
+  tax             Float       @default(0)
+  total           Float
+  paymentStatus   String      @default("PENDING") // PENDING, PAID, FAILED, REFUNDED
+  orderStatus     String      @default("CONFIRMED") // PENDING, CONFIRMED, PROCESSING, PACKED, SHIPPED, OUT_FOR_DELIVERY, DELIVERED, CANCELLED, RETURNED, REFUNDED
+  paymentMethod   String      @default("COD") // UPI, CARD, NETBANKING, WALLET, COD
+  paymentGateway  String?     // RAZORPAY, COD
+  transactionId   String?
+  shippingAddress String      // Serialized JSON of address
+  billingAddress  String?
+  trackingNumber  String?
+  shippingCompany String?
+  estimatedDelivery String?
+  internalNotes   String?
+  gstNumber       String?
+  invoiceNumber   String?
+  items           OrderItem[]
+  payments        Payment[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  productName String
+  productSku  String
+  price       Float
+  quantity    Int      @default(1)
+  condition   String?
+  oemNumber   String?
+  createdAt   DateTime @default(now())
+}
+
+model Payment {
+  id             String   @id @default(cuid())
+  orderId        String
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  customerId     String?
+  paymentGateway String   @default("RAZORPAY")
+  transactionId  String
+  amount         Float
+  status         String   @default("SUCCESS") // SUCCESS, PENDING, FAILED, REFUNDED
+  signature      String?
+  rawResponse    String?
+  createdAt      DateTime @default(now())
+}
+
+model Review {
+  id                 String   @id @default(cuid())
+  productId          String
+  product            Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  customerId         String
+  customer           User     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  orderId            String?
+  rating             Int      @default(5)
+  title              String?
+  comment            String
+  conditionRating    String?
+  images             String?  // JSON string array
+  isVerifiedPurchase Boolean  @default(true)
+  status             String   @default("APPROVED") // PENDING, APPROVED, HIDDEN
+  createdAt          DateTime @default(now())
+}
+
+model Wishlist {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   User     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([customerId, productId])
+}
+
+model Coupon {
+  id              String    @id @default(cuid())
+  code            String    @unique
+  discountType    String    @default("PERCENTAGE") // PERCENTAGE, FIXED
+  discountValue   Float
+  minimumOrder    Float     @default(0)
+  maximumDiscount Float?
+  usageLimit      Int       @default(100)
+  usedCount       Int       @default(0)
+  expiryDate      DateTime?
+  status          String    @default("ACTIVE")
+  createdAt       DateTime  @default(now())
+}
+
+model SupportTicket {
+  id             String          @id @default(cuid())
+  ticketNumber   String          @unique
+  customerId     String
+  customer       User            @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  orderId        String?
+  subject        String
+  category       String          @default("GENERAL") // ORDER, PART_ISSUE, PAYMENT, DELIVERY, RETURN_REFUND, BARGAIN, GENERAL
+  description    String
+  priority       String          @default("MEDIUM")  // LOW, MEDIUM, HIGH, URGENT
+  status         String          @default("OPEN")    // OPEN, IN_PROGRESS, WAITING_FOR_CUSTOMER, RESOLVED, CLOSED
+  assignedAdminId String?
+  messages       TicketMessage[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model TicketMessage {
+  id          String        @id @default(cuid())
+  ticketId    String
+  ticket      SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  senderId    String
+  sender      User          @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  senderRole  String        // CUSTOMER, ADMIN
+  message     String
+  attachments String?
+  createdAt   DateTime      @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String   @default("SYSTEM") // ORDER, OFFER, SUPPORT, SYSTEM, PROMO
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  adminId    String?
+  adminEmail String?
+  action     String
+  entity     String
+  entityId   String?
+  metadata   String?  // JSON string
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+}
+
+model WebsiteSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   // JSON string
+  updatedAt DateTime @updatedAt
+}
+
+model Banner {
+  id         String   @id @default(cuid())
+  title      String
+  subtitle   String?
+  imageUrl   String
+  linkUrl    String?
+  badge      String?
+  buttonText String?
+  active     Boolean  @default(true)
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+}
+
+model ProductQuestion {
+  id            String   @id @default(cuid())
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  customerId    String?
+  customer      User?    @relation(fields: [customerId], references: [id])
+  customerName  String
+  customerEmail String
+  question      String
+  answer        String?
+  answeredBy    String?
+  isPublic      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+}

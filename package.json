@@ -1,0 +1,39 @@
+{
+  "name": "86",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "prisma generate && next dev",
+    "build": "node prisma/prepare-netlify-schema.mjs && prisma generate --schema=prisma/schema.netlify.prisma && next build",
+    "start": "next start",
+    "lint": "eslint",
+    "seed": "npx tsx prisma/seed.ts",
+    "db:push:netlify": "node prisma/prepare-netlify-schema.mjs && prisma db push --schema=prisma/schema.netlify.prisma",
+    "seed:netlify": "node prisma/prepare-netlify-schema.mjs && prisma generate --schema=prisma/schema.netlify.prisma && npx tsx prisma/seed.ts"
+  },
+  "prisma": {
+    "seed": "npx tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "5.22.0",
+    "bcryptjs": "^3.0.3",
+    "jsonwebtoken": "^9.0.3",
+    "lucide-react": "^1.49.0",
+    "next": "16.3.7",
+    "prisma": "5.22.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.7",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
