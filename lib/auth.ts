@@ -3,7 +3,16 @@ import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 import prisma from "@/lib/prisma";
 
-const JWT_SECRET = process.env.JWT_SECRET || "geartrade-super-secure-jwt-secret-token-key-2026";
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error("JWT_SECRET must be set in the environment.");
+  }
+  return secret;
+}
+
+const JWT_SECRET = getJwtSecret();
+
 export const AUTH_COOKIE_NAME = "geartrade_auth_token";
 
 export interface TokenPayload {

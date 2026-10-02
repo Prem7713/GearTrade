@@ -4,12 +4,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { formatPrice, formatDate, getOrderStatusBadge } from "@/lib/utils";
+import PrintInvoiceButton from "@/components/PrintInvoiceButton";
 import {
   Package,
   Truck,
   CheckCircle2,
   Clock,
-  Printer,
   ShieldCheck,
   Building,
   ArrowLeft,
@@ -112,13 +112,7 @@ export default async function CustomerOrderDetailPage({ params }: OrderDetailPag
           </div>
 
           <div className="flex items-center space-x-3">
-            <button
-              onClick={() => {}}
-              className="no-print px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs flex items-center space-x-1.5"
-            >
-              <Printer className="w-4 h-4" />
-              <span>Print Tax Invoice</span>
-            </button>
+            <PrintInvoiceButton />
           </div>
         </div>
 

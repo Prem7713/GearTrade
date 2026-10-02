@@ -4,7 +4,7 @@ import React, { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@/lib/user-context";
-import { Wrench, Lock, Mail, ArrowRight, AlertCircle, Sparkles } from "lucide-react";
+import { Wrench, Lock, Mail, ArrowRight, AlertCircle } from "lucide-react";
 
 function LoginForm() {
   const router = useRouter();
@@ -43,12 +43,6 @@ function LoginForm() {
     }
   };
 
-  const fillCustomerDemo = () => {
-    setEmail("rajesh.kumar@gmail.com");
-    setPassword("customer123");
-    setError(null);
-  };
-
   return (
     <div className="bg-slate-50 min-h-screen py-16 flex items-center justify-center px-4">
       <div className="w-full max-w-md bg-white rounded-3xl border border-slate-200/80 p-8 sm:p-10 shadow-xl">
@@ -65,24 +59,6 @@ function LoginForm() {
           <p className="text-xs text-slate-500 mt-1">
             Access your orders, tracked deliveries, and live part negotiations.
           </p>
-        </div>
-
-        {/* Demo Credentials Quick-Fill button */}
-        <div className="mb-6 p-3 bg-orange-50/80 border border-orange-200/80 rounded-2xl flex items-center justify-between">
-          <div className="text-[11px] text-orange-950 font-medium">
-            <p className="font-bold flex items-center space-x-1">
-              <Sparkles className="w-3.5 h-3.5 text-orange-600" />
-              <span>Demo Customer Login:</span>
-            </p>
-            <p className="text-orange-800 text-[10px]">rajesh.kumar@gmail.com / customer123</p>
-          </div>
-          <button
-            type="button"
-            onClick={fillCustomerDemo}
-            className="px-2.5 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white font-bold text-[11px] shadow-xs"
-          >
-            Auto-Fill
-          </button>
         </div>
 
         {error && (

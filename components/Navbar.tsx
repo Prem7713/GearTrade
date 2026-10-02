@@ -95,6 +95,7 @@ export default function Navbar() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  suppressHydrationWarning
                   placeholder="Search by part name, OEM #, vehicle model (e.g. Creta headlight, Swift gearbox)..."
                   className="w-full bg-slate-100/90 border border-slate-300/80 rounded-xl pl-10 pr-20 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-hidden transition"
                 />
